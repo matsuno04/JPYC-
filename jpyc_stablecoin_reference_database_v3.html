@@ -1,0 +1,248 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.db-wrap { padding: 1rem 0; }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.filter-btn {
+  font-size: 12px; padding: 5px 12px; border-radius: 20px;
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  color: var(--color-text-secondary);
+  cursor: pointer; transition: all 0.15s;
+}
+.filter-btn.active {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-primary);
+  font-weight: 500;
+}
+.search-box {
+  flex: 1; min-width: 180px;
+  font-size: 13px; padding: 5px 12px;
+  border-radius: 20px;
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+.divider { font-size: 11px; color: var(--color-text-tertiary); padding: 0 2px; align-self: center; }
+.count { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 0.75rem; }
+.card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 1rem 1.25rem;
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+}
+.card:hover { border-color: var(--color-border-secondary); }
+.card-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.cat-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+.ct-tech  { background:#E6F1FB;color:#0C447C; }
+.ct-stable{ background:#EEEDFE;color:#3C3489; }
+.ct-jplaw { background:#E1F5EE;color:#085041; }
+.ct-intl  { background:#FAEEDA;color:#633806; }
+.ct-cbdc  { background:#FAECE7;color:#712B13; }
+.ct-risk  { background:#FCEBEB;color:#791F1F; }
+.ct-mp    { background:#FBEAF0;color:#72243E; }
+.rank-tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; font-weight: 500; }
+.rs { background:#EEEDFE;color:#3C3489; }
+.ra { background:#E1F5EE;color:#085041; }
+.rb { background:#FAEEDA;color:#633806; }
+.rc { background:#F1EFE8;color:#444441; }
+.card-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); line-height: 1.4; flex: 1; min-width: 0; }
+.type-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--color-background-secondary); color: var(--color-text-tertiary); white-space: nowrap; flex-shrink: 0; margin-top: 3px; }
+.card-meta { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 5px; }
+.card-desc { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 8px; }
+.card-rank-reason { font-size: 12px; color: var(--color-text-tertiary); line-height: 1.5; margin-bottom: 8px; padding: 6px 10px; border-left: 2px solid var(--color-border-secondary); border-radius: 0; }
+.card-link { font-size: 12px; }
+.card-link a { color: var(--color-text-info); text-decoration: none; word-break: break-all; }
+.card-link a:hover { text-decoration: underline; }
+.empty { color: var(--color-text-tertiary); font-size: 14px; padding: 2rem 0; text-align: center; }
+@media (prefers-color-scheme: dark) {
+  .ct-tech  { background:#042C53;color:#B5D4F4; }
+  .ct-stable{ background:#26215C;color:#CECBF6; }
+  .ct-jplaw { background:#04342C;color:#9FE1CB; }
+  .ct-intl  { background:#412402;color:#FAC775; }
+  .ct-cbdc  { background:#4A1B0C;color:#F5C4B3; }
+  .ct-risk  { background:#501313;color:#F7C1C1; }
+  .ct-mp    { background:#4B1528;color:#F4C0D1; }
+  .rs { background:#26215C;color:#CECBF6; }
+  .ra { background:#04342C;color:#9FE1CB; }
+  .rb { background:#412402;color:#FAC775; }
+  .rc { background:#2C2C2A;color:#D3D1C7; }
+}
+</style>
+
+<div class="db-wrap">
+  <div class="controls">
+    <input class="search-box" type="text" id="search" placeholder="タイトル・著者・説明で検索..." oninput="render()">
+    <span class="divider">|</span>
+    <button class="filter-btn active" onclick="setFilter('all','cat',this)">すべて</button>
+    <button class="filter-btn" onclick="setFilter('tech','cat',this)">技術基礎</button>
+    <button class="filter-btn" onclick="setFilter('stable','cat',this)">ステーブルコイン</button>
+    <button class="filter-btn" onclick="setFilter('jplaw','cat',this)">日本制度</button>
+    <button class="filter-btn" onclick="setFilter('intl','cat',this)">国際比較・規制</button>
+    <button class="filter-btn" onclick="setFilter('mp','cat',this)">金融政策</button>
+    <button class="filter-btn" onclick="setFilter('cbdc','cat',this)">CBDC</button>
+    <button class="filter-btn" onclick="setFilter('risk','cat',this)">失敗事例</button>
+  </div>
+  <div class="controls" style="margin-top:-8px;">
+    <span style="font-size:12px;color:var(--color-text-tertiary);align-self:center;">重要度:</span>
+    <button class="filter-btn" onclick="setFilter('S','rank',this)">S — 必読</button>
+    <button class="filter-btn" onclick="setFilter('A','rank',this)">A — 重要</button>
+    <button class="filter-btn" onclick="setFilter('B','rank',this)">B — 補強</button>
+    <button class="filter-btn" onclick="setFilter('C','rank',this)">C — 限定的</button>
+  </div>
+  <div class="count" id="count"></div>
+  <div id="list"></div>
+</div>
+
+<script>
+const refs = [
+  { cat:'stable', rank:'S', title:'Stablecoins: Risks, Potential and Regulation', author:'Arner, D. W., Auer, R., & Frost, J.', year:'2020', type:'BIS WP No.905',
+    desc:'BIS Working Paper No.905。分散型台帳技術と法定通貨ペグの組み合わせとしてステーブルコインを定義し、金融安定・規制・中央銀行の役割を体系的に論じた最も引用される基礎論文の一つ。Libra問題を契機とした規制論議の出発点。',
+    rankReason:'分野全体で最も引用される基礎論文。ステーブルコインの定義・類型・リスク・規制の枠組みをBISが体系化した起点。これを引用しない論文のほうが珍しい。',
+    url:'https://www.bis.org/publ/work905.pdf' },
+  { cat:'stable', rank:'S', title:'What Keeps Stablecoins Stable?', author:'Lyons, R. K., & Viswanath-Natraj, G.', year:'2023', type:'査読あり',
+    desc:'ステーブルコインのペグ維持メカニズムを計量分析した代表的査読論文（Journal of International Money and Finance）。JPYCの1円ペグ設計の理論的根拠として引用しやすい。',
+    rankReason:'査読あり学術誌掲載のペグ維持研究では最重要。計量分析の方法論・結果ともに後続研究に多数引用。JPYCの設計根拠に直接使える。',
+    url:'https://doi.org/10.1016/j.jimonfin.2022.102777' },
+  { cat:'stable', rank:'S', title:'Taming Wildcat Stablecoins', author:'Gorton, G. B., & Zhang, J.', year:'2023', type:'査読あり',
+    desc:'歴史的な「ワイルドキャット銀行」とステーブルコインを対比し規制の必要性を論じた影響力の大きな論文（University of Chicago Law Review）。ステーブルコイン規制論拠として頻繁に引用される。',
+    rankReason:'規制論のバイブル的存在。経済史的視点から規制の必然性を論じており、法学・経済学どちらの論文でも引用される。著者の知名度も高い。',
+    url:'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3888752' },
+  { cat:'intl', rank:'S', title:'High-level Recommendations for the Regulation, Supervision and Oversight of Global Stablecoin Arrangements', author:'Financial Stability Board (FSB)', year:'2023', type:'国際機関レポート',
+    desc:'G20へのFSB最終報告書。グローバル・ステーブルコインへの規制・監督・監視に関する高レベル勧告。国際的な規制の基準文書として参考文献に必須。',
+    rankReason:'G20公認の国際基準文書。各国規制の上位に位置し、MiCA・日本の改正資金決済法・シンガポール規制すべてがこれを参照して設計されている。',
+    url:'https://www.fsb.org/2023/07/high-level-recommendations-for-the-regulation-supervision-and-oversight-of-global-stablecoin-arrangements-final-report/' },
+  { cat:'jplaw', rank:'S', title:'令和4年資金決済法等改正法（法令テキスト）', author:'金融庁', year:'2022', type:'一次資料',
+    desc:'「電子決済手段」を定義しJPYCの発行根拠となった改正法の原文。2022年6月3日成立、2023年6月1日施行。制度面を論じる際の最重要一次資料。',
+    rankReason:'JPYCを論じるうえで避けて通れない一次法令。これなしにJPYCの制度的根拠は語れない。',
+    url:'https://www.fsa.go.jp/common/diet/208/01/seiritsu.pdf' },
+  { cat:'risk', rank:'S', title:"Anatomy of a Stablecoin's Failure: The Terra-Luna Case", author:'Briola, A., Vidal-Tomás, D., Wang, Y., & Aste, T.', year:'2023', type:'査読あり',
+    desc:'Finance Research Letters掲載。アルゴリズム型ステーブルコインTerra-Lunaの崩壊を詳細に分析。JPYCが「なぜ法定通貨担保型に設計されたか」の対比論文として有効。日本がTerraショック後に規制を強化した背景の根拠にもなる。',
+    rankReason:'査読あり学術誌掲載で、Terra崩壊の分析論文の中では最も引用数が多い。法定通貨担保型との対比・日本が規制強化した文脈の根拠として必須。',
+    url:'https://doi.org/10.1016/j.frl.2022.103358' },
+  { cat:'stable', rank:'A', title:'Understanding Stablecoins', author:'Adrian, T., Bains, P., et al. (IMF)', year:'2025', type:'IMF 部門ペーパー',
+    desc:'IMF通貨資本市場局による包括的レポート（2025年12月）。市場動向・利用事例・潜在的便益・マクロ金融安定リスク・金融誠実性リスク・規制状況を網羅。IMF公式文書として参考文献の信頼性が高い。',
+    rankReason:'IMF公式文書で最新（2025年12月）。市場動向・リスク・規制を網羅。IMFの権威性から査読論文と同等に引用できる。',
+    url:'https://www.imf.org/en/publications/departmental-papers/issues/2025/12/02/understanding-stablecoins-570602' },
+  { cat:'intl', rank:'A', title:'Stablecoins and Central Bank Digital Currencies: Policy and Regulatory Challenges', author:'Eichengreen, B., & Viswanath-Natraj, G.', year:'2022', type:'査読あり',
+    desc:'Asian Economic Policy Review掲載。ステーブルコイン発行者が決済機能を民営化しようとしており中央銀行がCBDCで対抗するという構図を政策的に分析。日本の文脈にも直結するアジア政策論文。',
+    rankReason:'ステーブルコインとCBDCの政策的競合構造を分析した代表的査読論文。アジア視点が日本論文に合う。',
+    url:'https://arxiv.org/pdf/2202.07564' },
+  { cat:'mp', rank:'A', title:'Stablecoins and Monetary Policy Transmission', author:'Altavilla, C., Boucinha, M., Burlon, L., et al. (ECB)', year:'2026', type:'ECB WP / CEPR DP',
+    desc:'ECBワーキングペーパーおよびCEPR Discussion Paper No.21321（2026年3月）。ユーロ圏の銀行・借り手の詳細データを使い、ステーブルコイン普及が銀行預金の代替・政策金利の波及効果・貸出条件に与える影響を実証。最新の金融政策伝達分析。',
+    rankReason:'金融政策伝達への影響を実データで分析した最新ECB論文。金融政策章を書くなら現時点で最も引用価値が高い。',
+    url:'https://www.ecb.europa.eu/pub/pdf/scpwps/ecb.wp3199~ad552b59ec.en.pdf' },
+  { cat:'stable', rank:'A', title:'Stablecoins: Growth Potential and Impact on Banking', author:'Cipriani, M. et al.', year:'2022', type:'中央銀行WP',
+    desc:'FRBニューヨーク連銀スタッフレポート（No.1034）。ステーブルコインの成長と銀行システムへの影響を実証分析。査読相当として広く引用される機関誌。',
+    rankReason:'FRBスタッフレポートで査読相当。銀行システムへの影響分析として金融安定の観点から広く引用される。',
+    url:'https://www.federalreserve.gov/econres/ifdp/files/ifdp1334.pdf' },
+  { cat:'jplaw', rank:'A', title:'ステーブルコインは本質的に悪貨なのか？', author:'淵田康之', year:'2022', type:'専門誌',
+    desc:'野村資本市場クォータリー掲載。日本が明治以来の銀行固有業務規制のためノンバンクの決済サービスに制約が残り、この枠組みを変えない限り欧米型のステーブルコイン発行・流通は不可能と論じた日本の制度的文脈理解に必須の文献。',
+    rankReason:'日本語文献でJPYC・改正資金決済法の文脈を論じる際に最も使いやすい。著者の実績・掲載誌の信頼性ともに高い。',
+    url:'https://www.nicmr.com/nicmr/report/repo/2022/2022spr07.pdf' },
+  { cat:'jplaw', rank:'A', title:'令和4年資金決済法等改正法におけるステーブルコイン規制', author:'西村あさひ法律事務所 芝章浩・水井大', year:'2023', type:'法律専門家レポート',
+    desc:'改正法においてデジタルマネー類似型ステーブルコインを「電子決済手段」として定義した制度整備の詳細解説。FATF勧告対応法との関係も整理。PDFで無料公開されており引用価値が高い。',
+    rankReason:'改正法の条文解釈を法律専門家が体系的に解説。日本の制度節で引用する際の信頼性が高く、無料PDF公開で入手容易。',
+    url:'https://www.nishimura.com/sites/default/files/newsletters/file/finance_law_230807_ja.pdf' },
+  { cat:'intl', rank:'A', title:'Some Perspectives on the Regulation of Stablecoins', author:'Cantú, C., Frost, J., & Noone, T. M.', year:'2025', type:'査読あり',
+    desc:'BIS・FRBの著者によるDuke Law Journal掲載論文。Terra崩壊後の規制進展を踏まえ各国アプローチを再評価し、規制の残余課題を論じる。2024年9月時点の情報まで反映。',
+    rankReason:'BIS・FRBの著者が規制の現状を再評価した最新論文。査読ありで、Terra後の規制進化を論じるのに適している。',
+    url:'https://scholarship.law.duke.edu/cgi/viewcontent.cgi?article=5161&context=lcp' },
+  { cat:'intl', rank:'A', title:'Markets in Crypto-Assets Regulation (MiCA) — Regulation (EU) 2023/1114', author:'European Parliament / Council of the EU', year:'2023', type:'法令',
+    desc:'世界初の統一的デジタル資産規制として2023年採択・2024年施行。JPYCとの比較・他国規制との対照で引用。資産参照型トークン(ART)と電子マネートークン(EMT)を区別して規制。',
+    rankReason:'他国規制比較において欠かせない一次法令。JPYCと電子マネートークン規制の対照として直接引用できる。',
+    url:'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32023R1114' },
+  { cat:'stable', rank:'B', title:'SoK: Stablecoins for Digital Transformation — Design, Metrics, and Application', author:'Zhang, L.', year:'2025', type:'arXiv (SoK)',
+    desc:'経済・法学・コンピュータサイエンスにまたがる学際的サーベイ（SoK）。設計の分類・性能指標・現実世界への応用を統一フレームワークで整理。MiCA・GENIUS法・香港の法整備も扱う最新2025年版。',
+    rankReason:'学際的サーベイとして包括的だが、arXiv段階で査読誌未掲載。文献整理の補助には使えるが、主要引用には査読誌版待ちが望ましい。',
+    url:'https://arxiv.org/abs/2508.02403' },
+  { cat:'stable', rank:'B', title:'Stablecoins: Fundamentals, Emerging Issues, and Open Challenges', author:'Mahrous, A., Caprolu, M., & Di Pietro, R.', year:'2025', type:'arXiv (IEEE投稿)',
+    desc:'2025年1月時点で時価総額2000億ドルを超えたステーブルコインについて経済・技術・規制の3側面を網羅した最新サーベイ論文。文献地図として使いやすく、各テーマの先行研究を体系的に把握できる。',
+    rankReason:'サーベイ論文として網羅性は高く先行研究の把握に有用。ただしarXiv段階のため、信頼性は査読誌掲載後に上がる。',
+    url:'https://arxiv.org/abs/2507.13883' },
+  { cat:'jplaw', rank:'B', title:'ステーブルコインと中央銀行デジタル通貨を巡って', author:'淵田康之', year:'2020', type:'専門誌',
+    desc:'野村資本市場クォータリー掲載。Libraショックを機にグローバル・ステーブルコインとCBDCの政策的競合が浮上した経緯を包括的に分析。日本語文献の中では最も体系的なステーブルコイン・CBDC比較論。',
+    rankReason:'2020年時点の整理なので制度が整う前の議論。歴史的経緯を論じる節では有効だが、現行制度の説明には2022年版を優先すべき。',
+    url:'https://www.nicmr.com/nicmr/report/repo/2020/2020spr05.pdf' },
+  { cat:'intl', rank:'B', title:'Comparative Cryptocurrencies and Stablecoins Regulation: A Framework for a Functional Comparative Analysis', author:'Martino, E. D.', year:'2023', type:'EBI WP / SSRN',
+    desc:'EU・英国・米国の規制を機能的比較法の視点で分析。規制収斂と乖離のダイナミクスを体系化した法学系論文。European Banking Institute Working Paper Series 2023-145。',
+    rankReason:'比較法的アプローチは独自性があるが、EBIワーキングペーパー止まりで査読誌未掲載。法学系学会なら引用価値あり、経済系ではやや弱い。',
+    url:'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4500090' },
+  { cat:'cbdc', rank:'B', title:'Advancing in tandem – 2024 BIS Survey on CBDCs and Crypto (BIS Papers No.159)', author:'Bank for International Settlements', year:'2025', type:'国際機関レポート',
+    desc:'2024年10〜12月に実施した各国中央銀行へのサーベイをまとめたBIS公式報告書。CBDCとステーブルコインの各国規制・進捗状況の最新一次資料。CBDC章の国際比較に必須。',
+    rankReason:'CBDC章の最新一次資料としては有用だが、論文というよりサーベイレポート。CBDC節を書く場合に限定的に引用するのが適切。',
+    url:'https://www.bis.org/publ/bppdf/bispap159.pdf' },
+  { cat:'intl', rank:'B', title:'Regulating Crypto — IMF Working Paper WP/22/178', author:'International Monetary Fund', year:'2022', type:'国際機関WP',
+    desc:'IMFワーキングペーパー。暗号資産・ステーブルコインの規制枠組みを各国比較で分析。査読相当として学術論文に幅広く引用される国際標準的資料。',
+    rankReason:'IMFの権威性は高いが2022年時点の情報。MiCA施行前・JPYC登場前のため、現状を論じる際は「Understanding Stablecoins (2025)」で代替できることが多い。',
+    url:'https://www.imf.org/en/Publications/WP/Issues/2022/09/23/Regulating-Crypto-523720' },
+  { cat:'intl', rank:'B', title:'Global Approaches to Stablecoin Regulation', author:'EY (Ernst & Young)', year:'2025', type:'実務レポート',
+    desc:'2025年7月版。UAE・シンガポール・EU・米国・日本など主要法域のステーブルコイン規制を横断比較。各国の施行時期・ライセンス要件・準備資産規制を一覧できる。',
+    rankReason:'各国規制の比較表として実用的だが、コンサルファームのレポートで学術文献としての格は低い。脚注での補助引用向き。',
+    url:'https://www.ey.com/content/dam/ey-unified-site/ey-com/en-gl/industries/banking-capital-markets/documents/ey-gl-global-stablecoin-regulation-comparison-09-2025.pdf' },
+  { cat:'cbdc', rank:'B', title:'中央銀行デジタル通貨（CBDCページ・実証実験レポート）', author:'日本銀行', year:'2021–2024', type:'中央銀行公式',
+    desc:'フェーズ1・2・パイロット実験の成果報告を含む。日銀はCBDC導入を決定していないが技術的準備を継続。デジタル円の現状を論じる際の一次資料。',
+    rankReason:'一次資料として正確だが学術論文というより公式発表資料。CBDCに関する事実確認・現状記述の補足引用に留めるのが適当。',
+    url:'https://www.boj.or.jp/paym/digital/index.htm' },
+  { cat:'tech', rank:'C', title:'Bitcoin: A Peer-to-Peer Electronic Cash System', author:'Nakamoto, S.', year:'2008', type:'原典',
+    desc:'ブロックチェーン技術の原点。分散台帳・プルーフオブワーク・P2P決済の仕組みを定義した文書。JPYCを含むほぼすべてのブロックチェーン関連論文が引用する必須一次資料。',
+    rankReason:'技術的な側面を論じるなら必須だが、制度・規制・市場分析が中心の論文では引用優先度が下がる。技術説明節がある場合のみ引用。',
+    url:'https://bitcoin.org/bitcoin.pdf' },
+  { cat:'tech', rank:'C', title:'A Next-Generation Smart Contract and Decentralized Application Platform (Ethereum White Paper)', author:'Buterin, V.', year:'2014', type:'原典',
+    desc:'スマートコントラクトの概念を提唱した原典。JPYCがEthereum系チェーン上で動作する技術的根拠となる文書。ERC-20トークン規格の理論的基盤。',
+    rankReason:'JPYCのオンチェーン実装技術を詳述する場合のみ有効。制度・規制・市場分析を主テーマにする論文では出番がほぼない。',
+    url:'https://ethereum.org/en/whitepaper/' },
+  { cat:'tech', rank:'B', title:'Blockchain and Other Distributed Ledger Technologies in Finance', author:'Hilary, G., & Liu, L. X.', year:'2024', type:'SSRN WP',
+    desc:'ブロックチェーン技術の金融分野への応用について学術文献を体系的にレビュー。暗号資産の発行後の市場効率性・トークン経済の問題を整理した金融系学会向きのサーベイ。',
+    rankReason:'金融・経済系学会でブロックチェーン技術の位置づけを説明する際に使いやすいが、SSRN段階で査読誌未掲載。技術基礎節の補助引用向き。',
+    url:'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4682028' },
+  { cat:'jplaw', rank:'C', title:'電子決済手段等に関するパブリックコメント結果', author:'金融庁', year:'2023', type:'一次資料',
+    desc:'2023年5月公表。銀行によるパーミッションレス型ブロックチェーンを用いたステーブルコイン発行への金融庁見解を含む。制度解釈の一次資料として引用価値が高い。',
+    rankReason:'銀行によるパーミッションレス型発行の可否など制度解釈を細かく論じる場合には貴重。ただし制度面を深掘りしない場合は改正法テキストだけで代替できる。',
+    url:'https://www.fsa.go.jp/news/r4/sonota/20230526/20230526.html' },
+];
+
+const catLabel = { tech:'技術基礎', stable:'ステーブルコイン', jplaw:'日本制度', intl:'国際比較・規制', cbdc:'CBDC', risk:'失敗事例', mp:'金融政策' };
+const rankLabel = { S:'S — 必読', A:'A — 重要', B:'B — 補強', C:'C — 限定的' };
+const rankOrder = { S:0, A:1, B:2, C:3 };
+
+let catFilter = 'all';
+let rankFilter = 'all';
+
+function setFilter(val, type, el) {
+  if (type === 'cat') { catFilter = val; document.querySelectorAll('.controls:first-child .filter-btn').forEach(b=>b.classList.remove('active')); }
+  else { rankFilter = val; document.querySelectorAll('.controls:nth-child(2) .filter-btn').forEach(b=>b.classList.remove('active')); }
+  el.classList.add('active');
+  render();
+}
+
+function render() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const filtered = refs.filter(r => {
+    const mc = catFilter === 'all' || r.cat === catFilter;
+    const mr = rankFilter === 'all' || r.rank === rankFilter;
+    const mq = !q || [r.title, r.author, r.desc, r.year, r.type].some(s => s.toLowerCase().includes(q));
+    return mc && mr && mq;
+  }).sort((a,b) => rankOrder[a.rank] - rankOrder[b.rank]);
+  document.getElementById('count').textContent = `${filtered.length} 件`;
+  document.getElementById('list').innerHTML = filtered.map(r => `
+    <div class="card">
+      <div class="card-header">
+        <span class="rank-tag r${r.rank.toLowerCase()}">${rankLabel[r.rank]}</span>
+        <span class="cat-tag ct-${r.cat}">${catLabel[r.cat]}</span>
+        <span class="card-title">${r.title}</span>
+        <span class="type-badge">${r.type}</span>
+      </div>
+      <div class="card-meta">${r.author} (${r.year})</div>
+      <div class="card-desc">${r.desc}</div>
+      <div class="card-rank-reason">${r.rankReason}</div>
+      <div class="card-link"><a href="${r.url}" target="_blank">${r.url}</a></div>
+    </div>
+  `).join('') || '<div class="empty">該当する文献がありません</div>';
+}
+
+render();
+</script>
